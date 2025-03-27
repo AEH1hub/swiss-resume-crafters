@@ -11,6 +11,7 @@ import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
 import ResumeEditor from "./pages/ResumeEditor";
 import PricingPage from "./pages/PricingPage";
+import TemplatesPage from "./pages/TemplatesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/editor" element={<ResumeEditor />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/templates" element={<TemplatesPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

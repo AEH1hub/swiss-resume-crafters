@@ -1,14 +1,19 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "../mode-toggle";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +28,47 @@ const Navbar = () => {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+
+    checkSession();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully"
+      });
+      
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to log out",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <header
@@ -55,6 +101,14 @@ const Navbar = () => {
               Home
             </Link>
             <Link
+              to="/templates"
+              className={`text-sm font-medium transition-colors hover:text-swiss-red ${
+                location.pathname === "/templates" ? "text-swiss-red" : ""
+              }`}
+            >
+              Templates
+            </Link>
+            <Link
               to="/pricing"
               className={`text-sm font-medium transition-colors hover:text-swiss-red ${
                 location.pathname === "/pricing" ? "text-swiss-red" : ""
@@ -63,14 +117,37 @@ const Navbar = () => {
               Pricing
             </Link>
             <ModeToggle />
-            <Link to="/login">
-              <Button variant="outline" size="sm">
-                Log in
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm">Sign up</Button>
-            </Link>
+            
+            {session && session.user ? (
+              <div className="flex items-center space-x-4">
+                <Link to="/dashboard">
+                  <Button variant="outline" size="sm" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={handleLogout}
+                  className="flex items-center"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link to="/login">
+                  <Button variant="outline" size="sm">
+                    Log in
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm">Sign up</Button>
+                </Link>
+              </div>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -105,6 +182,14 @@ const Navbar = () => {
               Home
             </Link>
             <Link
+              to="/templates"
+              className={`block py-2 text-sm font-medium transition-colors hover:text-swiss-red ${
+                location.pathname === "/templates" ? "text-swiss-red" : ""
+              }`}
+            >
+              Templates
+            </Link>
+            <Link
               to="/pricing"
               className={`block py-2 text-sm font-medium transition-colors hover:text-swiss-red ${
                 location.pathname === "/pricing" ? "text-swiss-red" : ""
@@ -112,18 +197,39 @@ const Navbar = () => {
             >
               Pricing
             </Link>
-            <div className="pt-2 flex flex-col space-y-2">
-              <Link to="/login" className="w-full">
-                <Button variant="outline" className="w-full" size="sm">
-                  Log in
+            
+            {session && session.user ? (
+              <div className="pt-2 flex flex-col space-y-2">
+                <Link to="/dashboard" className="w-full">
+                  <Button variant="outline" className="w-full justify-start" size="sm">
+                    <User className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button 
+                  className="w-full justify-start" 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
                 </Button>
-              </Link>
-              <Link to="/signup" className="w-full">
-                <Button className="w-full" size="sm">
-                  Sign up
-                </Button>
-              </Link>
-            </div>
+              </div>
+            ) : (
+              <div className="pt-2 flex flex-col space-y-2">
+                <Link to="/login" className="w-full">
+                  <Button variant="outline" className="w-full" size="sm">
+                    Log in
+                  </Button>
+                </Link>
+                <Link to="/signup" className="w-full">
+                  <Button className="w-full" size="sm">
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
