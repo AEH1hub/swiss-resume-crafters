@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "../mode-toggle";
-import { Menu, X, LogOut, User } from "lucide-react";
+import { Menu, X, LogOut, User, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,6 +11,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,8 +32,10 @@ const Navbar = () => {
 
   useEffect(() => {
     const checkSession = async () => {
+      setIsLoading(true);
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+      setIsLoading(false);
     };
 
     checkSession();
@@ -49,6 +52,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true);
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -67,6 +71,16 @@ const Navbar = () => {
         description: error.message || "Failed to log out",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateResume = () => {
+    if (session) {
+      navigate("/templates");
+    } else {
+      navigate("/signup");
     }
   };
 
@@ -116,9 +130,22 @@ const Navbar = () => {
             >
               Pricing
             </Link>
+            
+            <Button 
+              onClick={handleCreateResume}
+              variant="outline" 
+              size="sm"
+              className="flex items-center"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Create Resume
+            </Button>
+            
             <ModeToggle />
             
-            {session && session.user ? (
+            {isLoading ? (
+              <div className="h-9 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            ) : session && session.user ? (
               <div className="flex items-center space-x-4">
                 <Link to="/dashboard">
                   <Button variant="outline" size="sm" className="flex items-center">
@@ -144,7 +171,7 @@ const Navbar = () => {
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button size="sm">Sign up</Button>
+                  <Button size="sm" className="bg-swiss-red hover:bg-swiss-red/90">Sign up</Button>
                 </Link>
               </div>
             )}
@@ -198,7 +225,19 @@ const Navbar = () => {
               Pricing
             </Link>
             
-            {session && session.user ? (
+            <Button 
+              onClick={handleCreateResume}
+              className="w-full justify-start my-2"
+              variant="outline"
+              size="sm"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Create Resume
+            </Button>
+            
+            {isLoading ? (
+              <div className="h-9 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            ) : session && session.user ? (
               <div className="pt-2 flex flex-col space-y-2">
                 <Link to="/dashboard" className="w-full">
                   <Button variant="outline" className="w-full justify-start" size="sm">
@@ -224,7 +263,7 @@ const Navbar = () => {
                   </Button>
                 </Link>
                 <Link to="/signup" className="w-full">
-                  <Button className="w-full" size="sm">
+                  <Button className="w-full bg-swiss-red hover:bg-swiss-red/90" size="sm">
                     Sign up
                   </Button>
                 </Link>

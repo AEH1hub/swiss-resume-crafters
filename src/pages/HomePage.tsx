@@ -1,45 +1,11 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, ChevronRight, FileText, Sparkles, Users } from "lucide-react";
-import { useState, useEffect } from "react";
-
-// Resume template mockup image component
-const ResumeTemplateImage = ({ className = "" }: { className?: string }) => (
-  <div className={`rounded-lg shadow-lg overflow-hidden ${className}`}>
-    <div className="bg-white dark:bg-gray-800 h-full w-full p-4 flex flex-col">
-      <div className="flex justify-between items-start mb-5">
-        <div className="space-y-2">
-          <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-3 w-24 bg-gray-100 dark:bg-gray-600 rounded"></div>
-        </div>
-        <div className="h-12 w-12 rounded-full bg-swiss-red"></div>
-      </div>
-      <div className="flex-1 space-y-6">
-        <div className="space-y-2">
-          <div className="h-4 w-20 bg-swiss-red rounded"></div>
-          <div className="h-3 w-full bg-gray-100 dark:bg-gray-600 rounded"></div>
-          <div className="h-3 w-full bg-gray-100 dark:bg-gray-600 rounded"></div>
-        </div>
-        <div className="space-y-2">
-          <div className="h-4 w-20 bg-swiss-red rounded"></div>
-          <div className="h-3 w-full bg-gray-100 dark:bg-gray-600 rounded"></div>
-          <div className="h-3 w-4/5 bg-gray-100 dark:bg-gray-600 rounded"></div>
-        </div>
-        <div className="space-y-2">
-          <div className="h-4 w-20 bg-swiss-red rounded"></div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded"></div>
-            <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded"></div>
-            <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded"></div>
-            <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+import ResumeTemplateCard from "@/components/ResumeTemplateCard";
+import { supabase } from "@/integrations/supabase/client";
 
 const features = [
   {
@@ -102,6 +68,27 @@ const pricingTiers = [
 
 const HomePage = () => {
   const [activeTemplate, setActiveTemplate] = useState(0);
+  const [session, setSession] = useState<any>(null);
+  const navigate = useNavigate();
+  
+  // Check authentication status
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+
+    checkSession();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
   
   // Auto-rotate templates
   useEffect(() => {
@@ -110,6 +97,15 @@ const HomePage = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Handle Get Started button click
+  const handleGetStarted = () => {
+    if (session && session.user) {
+      navigate('/editor');
+    } else {
+      navigate('/signup');
+    }
+  };
 
   return (
     <MainLayout fullWidth>
@@ -128,12 +124,10 @@ const HomePage = () => {
               Professional templates, intuitive editor, and expert guidance to help you stand out in the Swiss job market.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
-              <Link to="/signup">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button size="lg" className="w-full sm:w-auto" onClick={handleGetStarted}>
+                Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
               <Link to="/templates">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   View Templates
@@ -145,9 +139,42 @@ const HomePage = () => {
           {/* Resume Templates Display */}
           <div className="relative mx-auto max-w-5xl">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
-              <ResumeTemplateImage className={`transition-all duration-500 transform ${activeTemplate === 0 ? 'scale-105 z-10 shadow-xl' : 'scale-95 opacity-80'}`} />
-              <ResumeTemplateImage className={`transition-all duration-500 transform ${activeTemplate === 1 ? 'scale-105 z-10 shadow-xl' : 'scale-95 opacity-80'}`} />
-              <ResumeTemplateImage className={`transition-all duration-500 transform ${activeTemplate === 2 ? 'scale-105 z-10 shadow-xl' : 'scale-95 opacity-80'}`} />
+              <ResumeTemplateCard 
+                name="Modern" 
+                isActive={activeTemplate === 0} 
+                onClick={() => setActiveTemplate(0)} 
+              />
+              <ResumeTemplateCard 
+                name="Professional" 
+                isPremium={true}
+                isActive={activeTemplate === 1} 
+                onClick={() => setActiveTemplate(1)} 
+              />
+              <ResumeTemplateCard 
+                name="Amadou Style" 
+                isActive={activeTemplate === 2} 
+                onClick={() => setActiveTemplate(2)} 
+              />
+            </div>
+            
+            {/* Featured Resume Example */}
+            <div className="mt-12 text-center">
+              <h2 className="text-2xl font-bold mb-4">Featured Resume Example</h2>
+              <div className="max-w-2xl mx-auto border rounded-lg shadow-lg overflow-hidden">
+                <img 
+                  src="/lovable-uploads/d881cc78-f182-4e68-a8c1-20488d0b91fe.png"
+                  alt="Amadou Resume Sample" 
+                  className="w-full object-contain" 
+                />
+              </div>
+              <div className="mt-4">
+                <Link to="/templates">
+                  <Button className="mt-4 bg-swiss-red hover:bg-swiss-red/90">
+                    Create Your Resume Like This
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -269,15 +296,14 @@ const HomePage = () => {
                       </li>
                     ))}
                   </ul>
-                  <Link to="/signup">
-                    <Button 
-                      className={`w-full ${tier.popular ? '' : 'bg-gray-800 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600'}`}
-                      variant={tier.popular ? "default" : "outline"}
-                    >
-                      {tier.cta}
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={handleGetStarted}
+                    className={`w-full ${tier.popular ? 'bg-swiss-red hover:bg-swiss-red/90' : 'bg-gray-800 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600'}`}
+                    variant={tier.popular ? "default" : "outline"}
+                  >
+                    {tier.cta}
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -297,12 +323,14 @@ const HomePage = () => {
                 <p className="text-white/90 text-lg mb-8">
                   Join thousands of Swiss professionals who have improved their job prospects with our platform.
                 </p>
-                <Link to="/signup">
-                  <Button size="lg" className="bg-white text-swiss-red hover:bg-white/90">
-                    Get Started Today
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  className="bg-white text-swiss-red hover:bg-white/90"
+                  onClick={handleGetStarted}
+                >
+                  Get Started Today
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
             </div>
             {/* Background patterns */}

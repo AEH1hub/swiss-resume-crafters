@@ -14,6 +14,7 @@ import PricingPage from "./pages/PricingPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import NotFound from "./pages/NotFound";
 
+// Create a new QueryClient
 const queryClient = new QueryClient();
 
 const App = () => (
