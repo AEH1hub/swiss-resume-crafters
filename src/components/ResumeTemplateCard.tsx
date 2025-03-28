@@ -24,7 +24,7 @@ const ResumeTemplateCard = ({
   tier = "free"
 }: ResumeTemplateCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [showPhoto] = useState(true); // Added showPhoto state
+  const [showPhoto, setShowPhoto] = useState(true);
 
   // Enhanced color schemes based on tier with more visual excitement
   const tierColors = {
@@ -69,13 +69,39 @@ const ResumeTemplateCard = ({
       accent: "bg-amber-500 dark:bg-amber-600"
     }
   };
+  
+  // Added a new palette for international resume styles
+  const internationalPalette = {
+    free: {
+      primary: "bg-teal-100 dark:bg-teal-900/30",
+      secondary: "bg-teal-200 dark:bg-teal-800/40",
+      accent: "bg-teal-500 dark:bg-teal-600",
+      header: "bg-gradient-to-r from-teal-400 to-cyan-400"
+    },
+    professional: {
+      primary: "bg-fuchsia-100 dark:bg-fuchsia-900/30",
+      secondary: "bg-fuchsia-200 dark:bg-fuchsia-800/40",
+      accent: "bg-fuchsia-500 dark:bg-fuchsia-600",
+      header: "bg-gradient-to-r from-violet-500 to-fuchsia-500"
+    },
+    enterprise: {
+      primary: "bg-emerald-100 dark:bg-emerald-900/30",
+      secondary: "bg-emerald-200 dark:bg-emerald-800/40",
+      accent: "bg-emerald-500 dark:bg-emerald-600",
+      header: "bg-gradient-to-r from-emerald-400 to-cyan-400"
+    }
+  };
 
   // Determine if this is Amadou style template
   const isAmadouStyle = name.toLowerCase().includes('amadou');
   
+  // Determine if this is International style template
+  const isInternationalStyle = name.toLowerCase().includes('international');
+  
   // Choose the right color scheme based on template type
   const colors = tierColors[tier];
   const amadouColors = amadouPalette[tier];
+  const internationalColors = internationalPalette[tier];
 
   return (
     <Card 
@@ -95,7 +121,89 @@ const ResumeTemplateCard = ({
             </Badge>
           )}
           
-          {isAmadouStyle ? (
+          {isInternationalStyle ? (
+            /* International Style Template Preview */
+            <div className={`bg-white dark:bg-gray-800 h-full w-full p-6 flex flex-col min-h-[200px] ${isHovered ? 'transform transition-transform duration-300 scale-[1.02]' : ''}`}>
+              <div className={`w-full ${internationalColors.header} rounded-t-lg p-4`}>
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <div className="h-5 w-32 bg-white/80 dark:bg-white/70 rounded"></div>
+                    <div className="h-3 w-28 bg-white/60 dark:bg-white/50 rounded"></div>
+                  </div>
+                  {showPhoto && (
+                    <div className={`h-14 w-14 rounded-full border-2 ${internationalColors.accent} border-white/90`}></div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex flex-row h-full">
+                <div className={`w-1/3 ${internationalColors.primary} p-3 space-y-3`}>
+                  <div className={`h-4 w-full ${internationalColors.accent} rounded mb-2`}></div>
+                  <div className="space-y-1">
+                    <div className="h-2 bg-white/70 dark:bg-white/30 rounded"></div>
+                    <div className="h-2 bg-white/70 dark:bg-white/30 rounded"></div>
+                  </div>
+                  
+                  <div className={`h-4 w-full ${internationalColors.accent} rounded mb-2 mt-4`}></div>
+                  <div className="flex flex-wrap gap-1">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className={`h-5 w-16 rounded-full ${internationalColors.secondary} flex items-center justify-center`}>
+                        <div className="h-2 w-10 bg-white/50 dark:bg-white/20 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className={`h-4 w-full ${internationalColors.accent} rounded mb-2 mt-4`}></div>
+                  <div className="flex flex-col gap-1">
+                    {[1, 2].map(i => (
+                      <div key={i} className="flex items-center space-x-1">
+                        <div className={`h-3 w-3 rounded-full ${internationalColors.accent}`}></div>
+                        <div className="h-2 w-16 bg-white/70 dark:bg-white/30 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="w-2/3 bg-white dark:bg-gray-800 p-3 space-y-3">
+                  <div className={`h-4 w-20 ${internationalColors.accent} rounded mb-2`}></div>
+                  <div className="space-y-1">
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded w-4/5"></div>
+                  </div>
+                  
+                  <div className={`h-4 w-24 ${internationalColors.accent} rounded mb-2 mt-4`}></div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div>
+                        <div className="h-3 w-24 bg-gray-200 dark:bg-gray-600 font-medium rounded"></div>
+                        <div className="h-2 w-20 bg-gray-100 dark:bg-gray-700 rounded mt-1"></div>
+                      </div>
+                      <div className="h-2 w-16 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                    </div>
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded w-4/5"></div>
+                  </div>
+                  
+                  <div className={`h-4 w-24 ${internationalColors.accent} rounded mb-2 mt-4`}></div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-3 w-28 bg-gray-200 dark:bg-gray-600 font-medium rounded"></div>
+                      <div className="h-2 w-16 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                    </div>
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <p className="text-sm font-medium text-center">{name}</p>
+                {description && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">{description}</p>
+                )}
+              </div>
+            </div>
+          ) : isAmadouStyle ? (
             /* Amadou Style Template Preview */
             <div className={`bg-white dark:bg-gray-800 h-full w-full p-6 flex flex-col min-h-[200px] ${isHovered ? 'transform transition-transform duration-300 scale-[1.02]' : ''}`}>
               <div className={`w-full ${amadouColors.primary} rounded-t-lg p-4`}>

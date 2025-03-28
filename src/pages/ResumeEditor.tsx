@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
@@ -164,7 +165,9 @@ const ResumeEditor = () => {
           if (error) throw error;
           
           if (data) {
+            // Fixed type handling for resume content
             const content = data.content;
+            
             if (content && 
                 typeof content === 'object' && 
                 'personal' in content && 
@@ -172,13 +175,16 @@ const ResumeEditor = () => {
                 'education' in content && 
                 'skills' in content && 
                 'languages' in content) {
-              setResumeData(content as ResumeData);
+              // Safe to cast to ResumeData now that we've checked the structure
+              setResumeData(content as unknown as ResumeData);
+              console.log("Successfully loaded resume data:", content);
             } else {
               console.error("Resume data format is invalid", content);
               setResumeData(defaultResumeData);
             }
           }
         } catch (error: any) {
+          console.error("Error fetching resume:", error);
           toast({
             title: "Error loading resume",
             description: error.message || "Failed to load resume data",
@@ -316,6 +322,7 @@ const ResumeEditor = () => {
     
     try {
       const contentToSave = JSON.parse(JSON.stringify(resumeData));
+      console.log("Saving resume data:", contentToSave);
       
       const resumeId = searchParams.get("id");
       
@@ -337,24 +344,29 @@ const ResumeEditor = () => {
           description: "Your resume has been updated",
         });
       } else {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from("resumes")
           .insert({
             user_id: session.user.id,
             title: resumeData.personal.name ? `${resumeData.personal.name}'s Resume` : "Untitled Resume",
             content: contentToSave,
             template: templateName,
-          });
+          })
+          .select();
 
         if (error) throw error;
+        
+        // If we have a new resume ID, update the URL
+        if (data && data.length > 0) {
+          const newResumeId = data[0].id;
+          navigate(`/resume-editor?id=${newResumeId}&template=${templateName}`);
+        }
         
         toast({
           title: "Success",
           description: "Your resume has been saved",
         });
       }
-      
-      navigate("/dashboard");
     } catch (error: any) {
       console.error("Error saving resume:", error);
       toast({
