@@ -24,6 +24,7 @@ const ResumeTemplateCard = ({
   tier = "free"
 }: ResumeTemplateCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [showPhoto] = useState(true); // Added showPhoto state
 
   // Enhanced color schemes based on tier with more visual excitement
   const tierColors = {

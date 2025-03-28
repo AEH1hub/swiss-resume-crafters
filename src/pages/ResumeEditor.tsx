@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
@@ -137,7 +136,6 @@ const ResumeEditor = () => {
 
     checkSession();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -166,8 +164,19 @@ const ResumeEditor = () => {
           if (error) throw error;
           
           if (data) {
-            // Fix for the TS error by using type assertion
-            setResumeData(data.content as ResumeData);
+            const content = data.content;
+            if (content && 
+                typeof content === 'object' && 
+                'personal' in content && 
+                'experience' in content && 
+                'education' in content && 
+                'skills' in content && 
+                'languages' in content) {
+              setResumeData(content as ResumeData);
+            } else {
+              console.error("Resume data format is invalid", content);
+              setResumeData(defaultResumeData);
+            }
           }
         } catch (error: any) {
           toast({
