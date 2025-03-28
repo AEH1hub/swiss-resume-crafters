@@ -101,25 +101,42 @@ const Footer = () => {
                 <img 
                   src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Cantons_of_Switzerland.svg/800px-Cantons_of_Switzerland.svg.png" 
                   alt="Map of Switzerland" 
-                  className="w-full h-full object-contain opacity-60 dark:opacity-50"
+                  className="w-full h-full object-contain opacity-70 dark:opacity-60 transition-all duration-300"
+                  onError={(e) => {
+                    console.error("Map image failed to load");
+                    e.currentTarget.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Flag_of_Switzerland.svg/512px-Flag_of_Switzerland.svg.png";
+                    e.currentTarget.className = "w-full h-full object-contain opacity-30 dark:opacity-20";
+                  }}
                 />
-                {/* Zurich Pin */}
+                
+                {/* Zurich Pin - Main Office */}
                 <div className="absolute top-[35%] right-[35%]">
-                  <div className="relative">
-                    <div className="w-3 h-3 bg-swiss-red rounded-full animate-ping absolute"></div>
-                    <div className="w-3 h-3 bg-swiss-red rounded-full relative"></div>
+                  <div className="relative group">
+                    <div className="w-3 h-3 bg-swiss-red rounded-full animate-ping absolute opacity-75"></div>
+                    <div className="w-3 h-3 bg-swiss-red rounded-full relative z-10"></div>
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Zürich (Main Office)
+                    </div>
                   </div>
                 </div>
+                
                 {/* Geneva Pin */}
                 <div className="absolute bottom-[30%] left-[20%]">
-                  <div className="relative">
+                  <div className="relative group">
                     <div className="w-2 h-2 bg-swiss-red rounded-full"></div>
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Geneva Office
+                    </div>
                   </div>
                 </div>
+                
                 {/* Bern Pin */}
                 <div className="absolute top-[52%] left-[35%]">
-                  <div className="relative">
+                  <div className="relative group">
                     <div className="w-2 h-2 bg-swiss-red rounded-full"></div>
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Bern Office
+                    </div>
                   </div>
                 </div>
               </div>
@@ -154,7 +171,7 @@ const Footer = () => {
               </svg>
             </a>
             <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red">
-              <span className="sr-only">WhatsApp</span>
+              <span className="sr-only">LinkedIn</span>
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
               </svg>

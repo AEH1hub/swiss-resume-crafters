@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import ResumeTemplateCard from "@/components/ResumeTemplateCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Template {
   id: string;
@@ -14,12 +15,14 @@ interface Template {
   description: string;
   thumbnail: string;
   is_premium: boolean;
+  tier: "free" | "professional" | "enterprise";
 }
 
 const TemplatesPage = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const [selectedTier, setSelectedTier] = useState<string>("all");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -35,70 +38,127 @@ const TemplatesPage = () => {
           throw error;
         }
 
-        // If templates are empty, add placeholders for visual display
-        if (!data || data.length === 0) {
-          const placeholderTemplates = [
-            {
-              id: "modern",
-              name: "Modern",
-              description: "A clean and modern resume template",
-              thumbnail: "/placeholder.svg",
-              is_premium: false
-            },
-            {
-              id: "professional",
-              name: "Professional",
-              description: "A professional resume template for corporate jobs",
-              thumbnail: "/placeholder.svg",
-              is_premium: false
-            },
-            {
-              id: "creative",
-              name: "Creative",
-              description: "A creative resume template that stands out",
-              thumbnail: "/placeholder.svg",
-              is_premium: true
-            },
-            {
-              id: "executive",
-              name: "Executive",
-              description: "An executive-level resume template",
-              thumbnail: "/placeholder.svg",
-              is_premium: true
-            },
-            {
-              id: "simple",
-              name: "Simple",
-              description: "A simple and elegant resume template",
-              thumbnail: "/placeholder.svg",
-              is_premium: false
-            },
-            {
-              id: "amadou",
-              name: "Amadou Style",
-              description: "Inspired by the colorful resume sample with skills section",
-              thumbnail: "/lovable-uploads/d881cc78-f182-4e68-a8c1-20488d0b91fe.png",
-              is_premium: false
-            }
-          ];
-          setTemplates(placeholderTemplates);
-        } else {
-          // Add the new Amadou template to the existing ones from database
-          const amadouTemplate = {
+        // Create improved template data with better descriptions and assigned tiers
+        const improvedTemplates: Template[] = [
+          {
+            id: "modern",
+            name: "Modern",
+            description: "A clean and contemporary resume that balances professionalism with modern design elements",
+            thumbnail: "/placeholder.svg",
+            is_premium: false,
+            tier: "free"
+          },
+          {
+            id: "professional",
+            name: "Professional",
+            description: "Elegant design for corporate settings with clear section organization and readability",
+            thumbnail: "/placeholder.svg",
+            is_premium: true,
+            tier: "professional"
+          },
+          {
+            id: "creative",
+            name: "Creative",
+            description: "Bold, distinctive layout for creative industries to showcase your personality and talents",
+            thumbnail: "/placeholder.svg",
+            is_premium: true,
+            tier: "professional"
+          },
+          {
+            id: "executive",
+            name: "Executive",
+            description: "Premium design for senior professionals with sophisticated styling and strategic content layout",
+            thumbnail: "/placeholder.svg",
+            is_premium: true,
+            tier: "enterprise"
+          },
+          {
+            id: "simple",
+            name: "Simple",
+            description: "Minimalist design with focus on content, perfect for traditional industries and academia",
+            thumbnail: "/placeholder.svg",
+            is_premium: false,
+            tier: "free"
+          },
+          {
+            id: "helvetica",
+            name: "Helvetica",
+            description: "Swiss-inspired clean design with the iconic Helvetica font for a truly timeless look",
+            thumbnail: "/placeholder.svg",
+            is_premium: false,
+            tier: "free"
+          },
+          {
+            id: "zurich",
+            name: "Zürich",
+            description: "Inspired by Swiss precision, featuring geometric elements and clear typography",
+            thumbnail: "/placeholder.svg",
+            is_premium: true,
+            tier: "professional"
+          },
+          {
             id: "amadou",
             name: "Amadou Style",
-            description: "Inspired by the colorful resume sample with skills section",
+            description: "Colorful, modern design with skill section visualization and unique header elements",
             thumbnail: "/lovable-uploads/d881cc78-f182-4e68-a8c1-20488d0b91fe.png",
-            is_premium: false
-          };
-          setTemplates([...data, amadouTemplate]);
-        }
+            is_premium: false,
+            tier: "free"
+          },
+          {
+            id: "amadou-pro",
+            name: "Amadou Professional",
+            description: "Enhanced version of Amadou Style with premium layout and advanced skill visualization",
+            thumbnail: "/lovable-uploads/d881cc78-f182-4e68-a8c1-20488d0b91fe.png",
+            is_premium: true,
+            tier: "professional"
+          },
+          {
+            id: "amadou-enterprise",
+            name: "Amadou Executive",
+            description: "Top-tier Amadou template with exclusive design elements for executive positions",
+            thumbnail: "/lovable-uploads/d881cc78-f182-4e68-a8c1-20488d0b91fe.png",
+            is_premium: true,
+            tier: "enterprise"
+          }
+        ];
+        
+        setTemplates(improvedTemplates);
       } catch (error: any) {
         toast({
           title: "Error",
           description: error.message || "Failed to fetch templates",
           variant: "destructive",
         });
+        
+        // Fallback to our improved templates if the database fetch fails
+        const fallbackTemplates: Template[] = [
+          {
+            id: "modern",
+            name: "Modern",
+            description: "A clean and contemporary resume that balances professionalism with modern design elements",
+            thumbnail: "/placeholder.svg",
+            is_premium: false,
+            tier: "free"
+          },
+          {
+            id: "professional",
+            name: "Professional",
+            description: "Elegant design for corporate settings with clear section organization and readability",
+            thumbnail: "/placeholder.svg",
+            is_premium: true,
+            tier: "professional"
+          },
+          {
+            id: "amadou",
+            name: "Amadou Style",
+            description: "Colorful, modern design with skill section visualization and unique header elements",
+            thumbnail: "/lovable-uploads/d881cc78-f182-4e68-a8c1-20488d0b91fe.png",
+            is_premium: false,
+            tier: "free"
+          }
+        ];
+        
+        setTemplates(fallbackTemplates);
       } finally {
         setIsLoading(false);
       }
@@ -107,6 +167,9 @@ const TemplatesPage = () => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+      
+      // Debug auth state
+      console.log("Current auth session:", data.session ? "Logged in" : "Not logged in");
     };
 
     fetchTemplates();
@@ -115,6 +178,7 @@ const TemplatesPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event);
         setSession(session);
       }
     );
@@ -139,7 +203,14 @@ const TemplatesPage = () => {
     } else {
       navigate(`/editor?template=${template.name}`);
     }
+    
+    // Log selection for debugging
+    console.log(`Selected template: ${template.name} (tier: ${template.tier})`);
   };
+  
+  const filteredTemplates = selectedTier === "all" 
+    ? templates 
+    : templates.filter(template => template.tier === selectedTier);
 
   return (
     <MainLayout>
@@ -151,45 +222,42 @@ const TemplatesPage = () => {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-swiss-red" />
-          </div>
-        ) : (
-          <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4">
+          <Tabs 
+            defaultValue="all" 
+            value={selectedTier}
+            onValueChange={setSelectedTier}
+            className="mb-8"
+          >
+            <TabsList className="mx-auto flex justify-center">
+              <TabsTrigger value="all">All Templates</TabsTrigger>
+              <TabsTrigger value="free">Free</TabsTrigger>
+              <TabsTrigger value="professional">Professional</TabsTrigger>
+              <TabsTrigger value="enterprise">Enterprise</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-swiss-red" />
+            </div>
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {templates.map((template) => (
-                <Card key={template.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                  <div className="relative">
-                    <img 
-                      src={template.thumbnail || "/placeholder.svg"} 
-                      alt={template.name} 
-                      className="w-full h-56 object-cover"
-                    />
-                    {template.is_premium && (
-                      <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs font-semibold px-2 py-1 rounded-full flex items-center">
-                        <Lock className="w-3 h-3 mr-1" />
-                        Premium
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{template.name}</CardTitle>
-                    <CardDescription>{template.description}</CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Button 
-                      className="w-full bg-swiss-red hover:bg-swiss-red/90" 
-                      onClick={() => handleTemplateSelect(template)}
-                    >
-                      Use This Template
-                    </Button>
-                  </CardFooter>
-                </Card>
+              {filteredTemplates.map((template) => (
+                <div key={template.id} className="flex">
+                  <ResumeTemplateCard
+                    name={template.name}
+                    description={template.description}
+                    isPremium={template.is_premium}
+                    tier={template.tier}
+                    onClick={() => handleTemplateSelect(template)}
+                    className="w-full h-full"
+                  />
+                </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </MainLayout>
   );

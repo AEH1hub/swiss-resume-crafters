@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -118,7 +119,7 @@ const ResumeEditor = () => {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const resumeRef = React.useRef<HTMLDivElement>(null);
+  const resumeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -165,6 +166,7 @@ const ResumeEditor = () => {
           if (error) throw error;
           
           if (data) {
+            // Fix for the TS error by using type assertion
             setResumeData(data.content as ResumeData);
           }
         } catch (error: any) {
