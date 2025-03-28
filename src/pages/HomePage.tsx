@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
@@ -71,7 +70,6 @@ const HomePage = () => {
   const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
   
-  // Check authentication status
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -80,7 +78,6 @@ const HomePage = () => {
 
     checkSession();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -90,7 +87,6 @@ const HomePage = () => {
     return () => subscription.unsubscribe();
   }, []);
   
-  // Auto-rotate templates
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveTemplate((prev) => (prev + 1) % 3);
@@ -98,7 +94,6 @@ const HomePage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle Get Started button click
   const handleGetStarted = () => {
     if (session && session.user) {
       navigate('/editor');
@@ -109,7 +104,6 @@ const HomePage = () => {
 
   return (
     <MainLayout fullWidth>
-      {/* Hero Section */}
       <section className="relative hero-pattern overflow-hidden pt-16 md:pt-24 pb-12 md:pb-20">
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-12 md:mb-20">
@@ -117,11 +111,10 @@ const HomePage = () => {
               Perfect for Swiss professionals & job seekers
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight animate-fade-in">
-              Craft your perfect resume with
-              <span className="text-swiss-red"> Swiss</span> precision
+              <span className="text-swiss-red">SVWISS RESUME</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8 animate-fade-in">
-              Professional templates, intuitive editor, and expert guidance to help you stand out in the Swiss job market.
+              "Our goal is to provide every worker—regardless of industry—with an easy-to-use, professional resume building tool."
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
               <Button size="lg" className="w-full sm:w-auto" onClick={handleGetStarted}>
@@ -136,7 +129,6 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Resume Templates Display */}
           <div className="relative mx-auto max-w-5xl">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
               <ResumeTemplateCard 
@@ -157,7 +149,6 @@ const HomePage = () => {
               />
             </div>
             
-            {/* Featured Resume Example */}
             <div className="mt-12 text-center">
               <h2 className="text-2xl font-bold mb-4">Featured Resume Example</h2>
               <div className="max-w-2xl mx-auto border rounded-lg shadow-lg overflow-hidden">
@@ -180,7 +171,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-16 md:py-24 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -209,7 +199,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* How It Works */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -257,7 +246,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Pricing Preview */}
       <section className="py-16 md:py-24 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -311,7 +299,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto bg-swiss-red rounded-2xl p-8 md:p-12 text-white relative overflow-hidden">
@@ -333,7 +320,6 @@ const HomePage = () => {
                 </Button>
               </div>
             </div>
-            {/* Background patterns */}
             <div className="absolute top-0 left-0 w-full h-full opacity-10">
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white"></div>
               <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white"></div>

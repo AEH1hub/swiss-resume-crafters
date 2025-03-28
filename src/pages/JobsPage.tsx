@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
@@ -7,10 +6,18 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Search, MapPin, Building, Calendar, ExternalLink, ArrowUpRight } from "lucide-react";
+import { Loader2, Search, MapPin, Building, Calendar, ExternalLink, ArrowUpRight, Briefcase, Hammer, ChefHat, Package, User, Plane, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface JobSite {
+  name: string;
+  description: string;
+  url: string;
+  industries?: string[];
+  logo?: string;
+}
 
 interface Job {
   id: string;
@@ -26,12 +33,132 @@ interface Job {
   category: string;
 }
 
+const officialJobSites: JobSite[] = [
+  {
+    name: "jobs.ch",
+    description: "Switzerland's largest job portal with thousands of listings across all industries.",
+    url: "https://www.jobs.ch",
+    industries: ["all"],
+    logo: "https://www.jobs.ch/favicon.ico"
+  },
+  {
+    name: "Indeed Switzerland",
+    description: "Global job search engine with comprehensive Swiss opportunities.",
+    url: "https://ch.indeed.com",
+    industries: ["all"],
+    logo: "https://ch.indeed.com/favicon.ico"
+  },
+  {
+    name: "LinkedIn Jobs Switzerland",
+    description: "Professional networking site with job listings and career opportunities.",
+    url: "https://www.linkedin.com/jobs/search/?location=Switzerland",
+    industries: ["technology", "finance", "administration"],
+    logo: "https://www.linkedin.com/favicon.ico"
+  },
+  {
+    name: "Swiss Federal Government",
+    description: "Official job portal for positions within the Swiss federal administration.",
+    url: "https://www.stelle.admin.ch",
+    industries: ["administration", "public sector"],
+    logo: "https://www.admin.ch/gov/en/start/news/faviconhome.ico"
+  },
+  {
+    name: "Xing Jobs",
+    description: "Professional networking platform popular in German-speaking countries.",
+    url: "https://www.xing.com/jobs/search?keywords=&location=Switzerland",
+    industries: ["technology", "finance", "administration"],
+    logo: "https://www.xing.com/favicon.ico"
+  },
+  {
+    name: "Hoteljob.ch",
+    description: "Specialized job portal for hospitality positions across Switzerland.",
+    url: "https://www.hoteljob.ch",
+    industries: ["hospitality"],
+    logo: "https://www.hoteljob.ch/favicon.ico"
+  },
+  {
+    name: "Gastrojob.ch",
+    description: "The leading job platform for gastronomy and hotel industry in Switzerland.",
+    url: "https://www.gastrojob.ch",
+    industries: ["hospitality"],
+    logo: "https://www.gastrojob.ch/favicon.ico"
+  },
+  {
+    name: "Bauarbeiter.ch",
+    description: "Dedicated portal for construction and related trades jobs.",
+    url: "https://www.bauarbeiter.ch",
+    industries: ["construction"],
+    logo: "https://www.bauarbeiter.ch/favicon.ico"
+  },
+  {
+    name: "Kelly Services Switzerland",
+    description: "Global staffing agency with numerous Swiss temporary positions.",
+    url: "https://www.kellyservices.ch/en/",
+    industries: ["all", "temporary"],
+    logo: "https://www.kellyservices.ch/favicon.ico"
+  },
+  {
+    name: "Manpower Switzerland",
+    description: "Staffing agency specializing in temporary and permanent placements.",
+    url: "https://www.manpower.ch/en",
+    industries: ["all", "temporary"],
+    logo: "https://www.manpower.ch/favicon.ico"
+  },
+  {
+    name: "Adecco Switzerland",
+    description: "Leading staffing company with offices throughout Switzerland.",
+    url: "https://www.adecco.ch/en-ch/",
+    industries: ["all", "temporary"],
+    logo: "https://www.adecco.ch/favicon.ico"
+  },
+  {
+    name: "Randstad Switzerland",
+    description: "Global HR provider with job opportunities across Switzerland.",
+    url: "https://www.randstad.ch/en/",
+    industries: ["all", "temporary"],
+    logo: "https://www.randstad.ch/favicon.ico"
+  },
+  {
+    name: "Swiss Airlines Careers",
+    description: "Career opportunities with Switzerland's national airline.",
+    url: "https://www.swiss.com/careers/en",
+    industries: ["aviation"],
+    logo: "https://www.swiss.com/favicon.ico"
+  },
+  {
+    name: "UBS Careers",
+    description: "Job opportunities at Switzerland's largest bank.",
+    url: "https://www.ubs.com/global/en/careers.html",
+    industries: ["finance"],
+    logo: "https://www.ubs.com/favicon.ico"
+  },
+  {
+    name: "Swisscom Jobs",
+    description: "Career opportunities at Switzerland's leading telecom provider.",
+    url: "https://www.swisscom.ch/en/about/jobs.html",
+    industries: ["technology", "telecommunications"],
+    logo: "https://www.swisscom.ch/favicon.ico"
+  }
+];
+
+const categoryIcons = {
+  technology: <FileText className="h-4 w-4 mr-1" />,
+  finance: <FileText className="h-4 w-4 mr-1" />,
+  hospitality: <ChefHat className="h-4 w-4 mr-1" />,
+  logistics: <Package className="h-4 w-4 mr-1" />,
+  construction: <Hammer className="h-4 w-4 mr-1" />,
+  cleaning: <Briefcase className="h-4 w-4 mr-1" />,
+  aviation: <Plane className="h-4 w-4 mr-1" />,
+  administration: <User className="h-4 w-4 mr-1" />
+};
+
 const JobsPage = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("all");
+  const [filteredJobSites, setFilteredJobSites] = useState<JobSite[]>(officialJobSites);
   const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,7 +171,6 @@ const JobsPage = () => {
 
     checkSession();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -59,8 +185,6 @@ const JobsPage = () => {
       setIsLoading(true);
       
       try {
-        // In a real app, this would fetch from your database
-        // For demo purposes, we're using placeholder data
         const placeholderJobs: Job[] = [
           {
             id: "1",
@@ -187,7 +311,6 @@ const JobsPage = () => {
   useEffect(() => {
     let results = jobs;
     
-    // Filter by search term
     if (searchTerm) {
       results = results.filter(job => 
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -196,7 +319,6 @@ const JobsPage = () => {
       );
     }
     
-    // Filter by category
     if (category && category !== "all") {
       results = results.filter(job => job.category === category);
     }
@@ -213,49 +335,15 @@ const JobsPage = () => {
   };
 
   const handleApplyClick = (url: string) => {
-    // Open in new tab
     window.open(url, "_blank");
   };
 
   const handleJobClick = (jobId: string) => {
-    // FIX: This was causing a build error - the element doesn't have a click method
-    // We let the click propagate naturally instead
-    // document.getElementById(`apply-btn-${jobId}`)?.click();
   };
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-CH', options);
-  };
-
-  const getJobSiteInfo = () => {
-    return [
-      {
-        name: "jobs.ch",
-        description: "Switzerland's largest job portal with thousands of listings across all industries.",
-        url: "https://www.jobs.ch"
-      },
-      {
-        name: "Indeed Switzerland",
-        description: "Global job search engine with many Swiss opportunities.",
-        url: "https://ch.indeed.com"
-      },
-      {
-        name: "LinkedIn Jobs",
-        description: "Professional networking site with job listings and career opportunities.",
-        url: "https://www.linkedin.com/jobs"
-      },
-      {
-        name: "Swiss Federal Government",
-        description: "Official job portal for positions within the Swiss federal administration.",
-        url: "https://www.stelle.admin.ch"
-      },
-      {
-        name: "Xing",
-        description: "Professional networking platform popular in German-speaking countries.",
-        url: "https://www.xing.com/jobs"
-      }
-    ];
   };
 
   const handleCreateResumeClick = () => {
@@ -269,6 +357,10 @@ const JobsPage = () => {
     }
     
     navigate("/templates");
+  };
+
+  const getCategoryIcon = (categoryName: string) => {
+    return categoryIcons[categoryName as keyof typeof categoryIcons] || <Briefcase className="h-4 w-4 mr-1" />;
   };
 
   return (
@@ -398,7 +490,6 @@ const JobsPage = () => {
                   )}
                 </TabsContent>
                 
-                {/* All other category tabs share the same content */}
                 {["technology", "finance", "hospitality", "logistics", "construction", "cleaning", "aviation", "administration"].map((cat) => (
                   <TabsContent key={cat} value={cat} className="mt-0">
                     {isLoading ? (
@@ -482,8 +573,8 @@ const JobsPage = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {getJobSiteInfo().map((site, index) => (
+                  <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                    {filteredJobSites.map((site, index) => (
                       <div key={index} className="group">
                         <a 
                           href={site.url} 
@@ -491,14 +582,35 @@ const JobsPage = () => {
                           rel="noopener noreferrer"
                           className="flex items-start p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >
-                          <div>
-                            <h3 className="font-medium group-hover:text-swiss-red flex items-center">
-                              {site.name}
-                              <ArrowUpRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </h3>
+                          <div className="flex-1">
+                            <div className="flex items-center">
+                              {site.logo && (
+                                <img 
+                                  src={site.logo} 
+                                  alt={`${site.name} logo`} 
+                                  className="w-4 h-4 mr-2"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              )}
+                              <h3 className="font-medium group-hover:text-swiss-red flex items-center">
+                                {site.name}
+                                <ArrowUpRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </h3>
+                            </div>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                               {site.description}
                             </p>
+                            {site.industries && site.industries.length > 0 && site.industries[0] !== "all" && (
+                              <div className="flex flex-wrap mt-2 gap-1">
+                                {site.industries.map(industry => (
+                                  <Badge key={industry} variant="outline" className="text-xs">
+                                    {industry}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </a>
                       </div>
@@ -513,6 +625,41 @@ const JobsPage = () => {
                     Create Your Resume Now
                   </Button>
                 </CardFooter>
+              </Card>
+              
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Temporary Job Agencies</CardTitle>
+                  <CardDescription>
+                    Top staffing agencies with offices in Zürich and across Switzerland
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {officialJobSites
+                      .filter(site => site.industries?.includes("temporary"))
+                      .map((agency, index) => (
+                        <div key={index} className="group">
+                          <a 
+                            href={agency.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-start p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <div className="flex-1">
+                              <h3 className="font-medium group-hover:text-swiss-red flex items-center">
+                                {agency.name}
+                                <ArrowUpRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {agency.description}
+                              </p>
+                            </div>
+                          </a>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
               </Card>
             </div>
           </div>

@@ -2,6 +2,18 @@
 import { Link } from "react-router-dom";
 import { MapPin, Mail, Phone } from "lucide-react";
 
+// Job office locations in Switzerland
+const jobOfficeLocations = [
+  { city: "Zürich", position: { top: "35%", right: "35%" }, isPrimary: true },
+  { city: "Bern", position: { top: "52%", left: "35%" }, isPrimary: false },
+  { city: "Geneva", position: { bottom: "30%", left: "20%" }, isPrimary: false },
+  { city: "Basel", position: { top: "32%", left: "30%" }, isPrimary: false },
+  { city: "Winterthur", position: { top: "32%", right: "30%" }, isPrimary: false },
+  { city: "Lucerne", position: { top: "43%", right: "42%" }, isPrimary: false },
+  { city: "St. Gallen", position: { top: "28%", right: "25%" }, isPrimary: false },
+  { city: "Lugano", position: { bottom: "25%", right: "40%" }, isPrimary: false }
+];
+
 const Footer = () => {
   return (
     <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
@@ -93,7 +105,7 @@ const Footer = () => {
           
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">
-              Our Offices
+              Our Job Offices
             </h3>
             <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
               <div className="bg-gray-100 dark:bg-gray-800 p-2 relative h-48">
@@ -109,39 +121,25 @@ const Footer = () => {
                   }}
                 />
                 
-                {/* Zurich Pin - Main Office */}
-                <div className="absolute top-[35%] right-[35%]">
-                  <div className="relative group">
-                    <div className="w-3 h-3 bg-swiss-red rounded-full animate-ping absolute opacity-75"></div>
-                    <div className="w-3 h-3 bg-swiss-red rounded-full relative z-10"></div>
-                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                      Zürich (Main Office)
+                {/* Job Office Location Pins */}
+                {jobOfficeLocations.map((location) => (
+                  <div 
+                    key={location.city}
+                    className="absolute" 
+                    style={location.position}
+                  >
+                    <div className="relative group">
+                      <div className={`w-${location.isPrimary ? '3' : '2'} h-${location.isPrimary ? '3' : '2'} bg-swiss-red rounded-full ${location.isPrimary ? 'animate-ping absolute opacity-75' : ''}`}></div>
+                      <div className={`w-${location.isPrimary ? '3' : '2'} h-${location.isPrimary ? '3' : '2'} bg-swiss-red rounded-full relative z-10`}></div>
+                      <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                        {location.city} {location.isPrimary ? '(Main Office)' : 'Office'}
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Geneva Pin */}
-                <div className="absolute bottom-[30%] left-[20%]">
-                  <div className="relative group">
-                    <div className="w-2 h-2 bg-swiss-red rounded-full"></div>
-                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                      Geneva Office
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Bern Pin */}
-                <div className="absolute top-[52%] left-[35%]">
-                  <div className="relative group">
-                    <div className="w-2 h-2 bg-swiss-red rounded-full"></div>
-                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                      Bern Office
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
               <div className="p-2 text-xs text-center text-gray-500 dark:text-gray-400">
-                Our main office is in Zürich with temporary locations across Switzerland.
+                Our main office is in Zürich with temporary job locations across Switzerland.
               </div>
             </div>
           </div>
