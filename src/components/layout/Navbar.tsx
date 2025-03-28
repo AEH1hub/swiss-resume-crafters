@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "../mode-toggle";
-import { Menu, X, LogOut, User, FileText } from "lucide-react";
+import { Menu, X, LogOut, User, FileText, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -99,8 +99,8 @@ const Navbar = () => {
               to="/"
               className="flex items-center space-x-2 text-xl font-bold transition-all hover:opacity-80"
             >
-              <span className="text-swiss-red">Swiss</span>
-              <span className="bg-swiss-red text-white px-1">Resume</span>
+              <span className="text-swiss-red">SVWISS</span>
+              <span className="bg-swiss-red text-white px-1">RESUME</span>
             </Link>
           </div>
 
@@ -129,6 +129,15 @@ const Navbar = () => {
               }`}
             >
               Pricing
+            </Link>
+            <Link
+              to="/jobs"
+              className={`text-sm font-medium transition-colors hover:text-swiss-red ${
+                location.pathname === "/jobs" ? "text-swiss-red" : ""
+              }`}
+            >
+              <Briefcase className="inline-block mr-1 h-4 w-4" />
+              Jobs
             </Link>
             
             <Button 
@@ -223,6 +232,15 @@ const Navbar = () => {
               }`}
             >
               Pricing
+            </Link>
+            <Link
+              to="/jobs"
+              className={`block py-2 text-sm font-medium transition-colors hover:text-swiss-red ${
+                location.pathname === "/jobs" ? "text-swiss-red" : ""
+              }`}
+            >
+              <Briefcase className="inline-block mr-1 h-4 w-4" />
+              Jobs
             </Link>
             
             <Button 

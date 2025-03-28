@@ -1,5 +1,6 @@
 
 import { Link } from "react-router-dom";
+import { MapPin, Mail, Phone } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -11,12 +12,32 @@ const Footer = () => {
               to="/"
               className="flex items-center space-x-2 text-xl font-bold"
             >
-              <span className="text-swiss-red">Swiss</span>
-              <span className="bg-swiss-red text-white px-1">Resume</span>
+              <span className="text-swiss-red">SVWISS</span>
+              <span className="bg-swiss-red text-white px-1">RESUME</span>
             </Link>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Professional resume building platform tailored for Swiss professionals
             </p>
+            <div className="space-y-2 mt-4">
+              <div className="flex items-start space-x-2">
+                <MapPin className="h-5 w-5 text-swiss-red flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Grünhaldenstrasse 5, 8050 Zürich
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Phone className="h-5 w-5 text-swiss-red flex-shrink-0" />
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  +41 782 6666 71
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Mail className="h-5 w-5 text-swiss-red flex-shrink-0" />
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  contact@svwissresume.ch
+                </span>
+              </div>
+            </div>
           </div>
           
           <div>
@@ -30,13 +51,13 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red text-sm">
+                <Link to="/templates" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red text-sm">
                   Templates
                 </Link>
               </li>
               <li>
-                <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red text-sm">
-                  Features
+                <Link to="/jobs" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red text-sm">
+                  Jobs
                 </Link>
               </li>
             </ul>
@@ -72,31 +93,46 @@ const Footer = () => {
           
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">
-              Company
+              Our Offices
             </h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red text-sm">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red text-sm">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red text-sm">
-                  Blog
-                </Link>
-              </li>
-            </ul>
+            <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+              <div className="bg-gray-100 dark:bg-gray-800 p-2 relative h-48">
+                {/* Switzerland Map with Office Locations */}
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Cantons_of_Switzerland.svg/800px-Cantons_of_Switzerland.svg.png" 
+                  alt="Map of Switzerland" 
+                  className="w-full h-full object-contain opacity-60 dark:opacity-50"
+                />
+                {/* Zurich Pin */}
+                <div className="absolute top-[35%] right-[35%]">
+                  <div className="relative">
+                    <div className="w-3 h-3 bg-swiss-red rounded-full animate-ping absolute"></div>
+                    <div className="w-3 h-3 bg-swiss-red rounded-full relative"></div>
+                  </div>
+                </div>
+                {/* Geneva Pin */}
+                <div className="absolute bottom-[30%] left-[20%]">
+                  <div className="relative">
+                    <div className="w-2 h-2 bg-swiss-red rounded-full"></div>
+                  </div>
+                </div>
+                {/* Bern Pin */}
+                <div className="absolute top-[52%] left-[35%]">
+                  <div className="relative">
+                    <div className="w-2 h-2 bg-swiss-red rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-2 text-xs text-center text-gray-500 dark:text-gray-400">
+                Our main office is in Zürich with temporary locations across Switzerland.
+              </div>
+            </div>
           </div>
         </div>
         
         <div className="border-t border-gray-200 dark:border-gray-800 pt-8 mt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} Swiss Resume. All rights reserved.
+            &copy; {new Date().getFullYear()} SVWISS RESUME. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red">
@@ -118,7 +154,7 @@ const Footer = () => {
               </svg>
             </a>
             <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-swiss-red">
-              <span className="sr-only">LinkedIn</span>
+              <span className="sr-only">WhatsApp</span>
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
               </svg>

@@ -12,6 +12,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ResumeEditor from "./pages/ResumeEditor";
 import PricingPage from "./pages/PricingPage";
 import TemplatesPage from "./pages/TemplatesPage";
+import JobsPage from "./pages/JobsPage";
 import NotFound from "./pages/NotFound";
 
 // Create a new QueryClient
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/editor" element={<ResumeEditor />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/templates" element={<TemplatesPage />} />
+            <Route path="/jobs" element={<JobsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

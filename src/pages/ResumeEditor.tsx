@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
@@ -8,9 +7,34 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Save, Download, ArrowLeft } from "lucide-react";
+import { 
+  Loader2, 
+  Save, 
+  Download, 
+  ArrowLeft, 
+  Share2, 
+  Facebook, 
+  Mail, 
+  Twitter, 
+  Phone 
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface ResumeData {
   personal: {
@@ -19,6 +43,7 @@ interface ResumeData {
     email: string;
     phone: string;
     address: string;
+    photo?: string;
   };
   summary: string;
   experience: {
@@ -49,7 +74,8 @@ const defaultResumeData: ResumeData = {
     title: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
+    photo: ""
   },
   summary: "",
   experience: [
@@ -86,9 +112,13 @@ const ResumeEditor = () => {
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const resumeRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -118,6 +148,39 @@ const ResumeEditor = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate, toast]);
+
+  useEffect(() => {
+    const resumeId = searchParams.get("id");
+    if (resumeId && session) {
+      const fetchResume = async () => {
+        setIsLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from("resumes")
+            .select("*")
+            .eq("id", resumeId)
+            .eq("user_id", session.user.id)
+            .single();
+
+          if (error) throw error;
+          
+          if (data) {
+            setResumeData(data.content as ResumeData);
+          }
+        } catch (error: any) {
+          toast({
+            title: "Error loading resume",
+            description: error.message || "Failed to load resume data",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchResume();
+    }
+  }, [searchParams, session, toast]);
 
   const handleInputChange = (
     section: keyof ResumeData,
@@ -241,28 +304,48 @@ const ResumeEditor = () => {
     setIsSaving(true);
     
     try {
-      const { data, error } = await supabase
-        .from("resumes")
-        .insert({
-          user_id: session.user.id,
-          title: resumeData.personal.name ? `${resumeData.personal.name}'s Resume` : "Untitled Resume",
-          content: resumeData,
-          template: templateName,
-        })
-        .select();
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Your resume has been saved",
-      });
+      const contentToSave = JSON.parse(JSON.stringify(resumeData));
       
-      // Navigate to dashboard or preview
+      const resumeId = searchParams.get("id");
+      
+      if (resumeId) {
+        const { error } = await supabase
+          .from("resumes")
+          .update({
+            title: resumeData.personal.name ? `${resumeData.personal.name}'s Resume` : "Untitled Resume",
+            content: contentToSave,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", resumeId)
+          .eq("user_id", session.user.id);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Your resume has been updated",
+        });
+      } else {
+        const { error } = await supabase
+          .from("resumes")
+          .insert({
+            user_id: session.user.id,
+            title: resumeData.personal.name ? `${resumeData.personal.name}'s Resume` : "Untitled Resume",
+            content: contentToSave,
+            template: templateName,
+          });
+
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Your resume has been saved",
+        });
+      }
+      
       navigate("/dashboard");
     } catch (error: any) {
+      console.error("Error saving resume:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to save resume",
@@ -273,13 +356,144 @@ const ResumeEditor = () => {
     }
   };
 
-  const downloadResume = () => {
-    // In a real app, this would generate a PDF
-    toast({
-      title: "Download initiated",
-      description: "Your resume is being prepared for download",
-    });
+  const downloadResume = async () => {
+    if (!resumeRef.current) return;
+    
+    setIsDownloading(true);
+    
+    try {
+      const canvas = await html2canvas(resumeRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const ratio = canvas.width / canvas.height;
+      const imgWidth = pdfWidth;
+      const imgHeight = pdfWidth / ratio;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      
+      const fileName = resumeData.personal.name
+        ? `${resumeData.personal.name.replace(/\s+/g, '_')}_Resume.pdf`
+        : 'SVWISS_Resume.pdf';
+        
+      pdf.save(fileName);
+      
+      toast({
+        title: "Download complete",
+        description: "Your resume has been downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Error downloading resume:", error);
+      toast({
+        title: "Download failed",
+        description: "There was an error generating your PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
+
+  const shareResume = (platform: string) => {
+    const title = resumeData.personal.name 
+      ? `${resumeData.personal.name}'s Resume` 
+      : 'SVWISS Resume';
+    const url = window.location.href;
+    
+    switch (platform) {
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'email':
+        window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Check out this resume: ${url}`)}`, '_blank');
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${title}: ${url}`)}`, '_blank');
+        break;
+      default:
+        navigator.clipboard.writeText(url).then(() => {
+          toast({
+            title: "Link copied",
+            description: "Resume link copied to clipboard",
+          });
+        });
+        break;
+    }
+    
+    setShareDialogOpen(false);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !session) return;
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${session.user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `resume-photos/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('resume-assets')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage
+        .from('resume-assets')
+        .getPublicUrl(filePath);
+        
+      if (data) {
+        setResumeData(prev => ({
+          ...prev,
+          personal: {
+            ...prev.personal,
+            photo: data.publicUrl
+          }
+        }));
+        
+        toast({
+          title: "Photo uploaded",
+          description: "Your photo has been uploaded successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading your photo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-[60vh]">
+          <div className="flex flex-col items-center">
+            <Loader2 className="h-12 w-12 animate-spin text-swiss-red" />
+            <p className="mt-4 text-lg">Loading resume data...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -316,9 +530,27 @@ const ResumeEditor = () => {
                   </>
                 )}
               </Button>
-              <Button onClick={downloadResume}>
-                <Download className="mr-2 h-4 w-4" />
-                Download
+              
+              <Button 
+                variant="outline"
+                onClick={() => setShareDialogOpen(true)}
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
+              
+              <Button onClick={downloadResume} disabled={isDownloading}>
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -331,10 +563,35 @@ const ResumeEditor = () => {
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                     You're using the {templateName} template. Your changes will be reflected in real-time.
                   </p>
+                  
+                  <div className="mb-4">
+                    <div className="flex items-center">
+                      <Label htmlFor="show-photo" className="mr-2">Include Photo</Label>
+                      <input 
+                        type="checkbox" 
+                        id="show-photo" 
+                        checked={showPhoto} 
+                        onChange={(e) => setShowPhoto(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Toggle to include or exclude a photo in your resume
+                    </p>
+                  </div>
+                  
                   <div className="aspect-[8.5/11] bg-white dark:bg-gray-800 rounded-md border overflow-hidden">
-                    {/* Template preview would be here */}
-                    <div className="h-full w-full p-6 flex flex-col">
+                    <div className="h-full w-full p-6 flex flex-col" ref={resumeRef}>
                       <div className="text-center mb-4">
+                        {showPhoto && resumeData.personal.photo && (
+                          <div className="flex justify-center mb-2">
+                            <img 
+                              src={resumeData.personal.photo} 
+                              alt="Profile"
+                              className="w-20 h-20 rounded-full object-cover border-2 border-swiss-red"
+                            />
+                          </div>
+                        )}
                         <h2 className="text-lg font-bold">
                           {resumeData.personal.name || "Your Name"}
                         </h2>
@@ -342,12 +599,12 @@ const ResumeEditor = () => {
                           {resumeData.personal.title || "Professional Title"}
                         </p>
                       </div>
-                      {/* Simple preview of resume content */}
                       <div className="flex-1 overflow-hidden text-xs">
                         <div className="mb-2">
                           <h3 className="font-semibold">Contact</h3>
                           <p>{resumeData.personal.email || "email@example.com"}</p>
                           <p>{resumeData.personal.phone || "123-456-7890"}</p>
+                          {resumeData.personal.address && <p>{resumeData.personal.address}</p>}
                         </div>
                         <div className="mb-2">
                           <h3 className="font-semibold">Experience</h3>
@@ -357,7 +614,22 @@ const ResumeEditor = () => {
                             </div>
                           ))}
                         </div>
-                        {/* More sections would be previewed here */}
+                        <div className="mb-2">
+                          <h3 className="font-semibold">Education</h3>
+                          {resumeData.education.map((edu, i) => (
+                            <div key={i} className="mb-1">
+                              {edu.degree && <p>{edu.degree} - {edu.institution}</p>}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mb-2">
+                          <h3 className="font-semibold">Skills</h3>
+                          <div className="flex flex-wrap">
+                            {resumeData.skills.map((skill, i) => (
+                              skill && <span key={i} className="mr-1">{skill},</span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -411,7 +683,7 @@ const ResumeEditor = () => {
                         id="phone"
                         value={resumeData.personal.phone}
                         onChange={(e) => handleInputChange("personal", "phone", e.target.value)}
-                        placeholder="+1 (555) 123-4567"
+                        placeholder="+41 123 456 789"
                       />
                     </div>
                     <div>
@@ -420,9 +692,34 @@ const ResumeEditor = () => {
                         id="address"
                         value={resumeData.personal.address}
                         onChange={(e) => handleInputChange("personal", "address", e.target.value)}
-                        placeholder="123 Main St, City, Country"
+                        placeholder="123 Main St, Zurich, Switzerland"
                       />
                     </div>
+                    
+                    {showPhoto && (
+                      <div>
+                        <Label htmlFor="photo">Photo</Label>
+                        <div className="flex items-center space-x-4">
+                          {resumeData.personal.photo && (
+                            <img 
+                              src={resumeData.personal.photo} 
+                              alt="Profile" 
+                              className="w-16 h-16 rounded-full object-cover"
+                            />
+                          )}
+                          <Input
+                            id="photo"
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Recommended: Square image, at least 300x300px
+                        </p>
+                      </div>
+                    )}
+                    
                     <div>
                       <Label htmlFor="summary">Professional Summary</Label>
                       <Textarea
@@ -477,7 +774,7 @@ const ResumeEditor = () => {
                           id={`location-${index}`}
                           value={exp.location}
                           onChange={(e) => handleInputChange("experience", "location", e.target.value, index)}
-                          placeholder="City, Country"
+                          placeholder="Zurich, Switzerland"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -551,7 +848,7 @@ const ResumeEditor = () => {
                           id={`institution-${index}`}
                           value={edu.institution}
                           onChange={(e) => handleInputChange("education", "institution", e.target.value, index)}
-                          placeholder="University of Example"
+                          placeholder="University of Zurich"
                         />
                       </div>
                       <div>
@@ -560,7 +857,7 @@ const ResumeEditor = () => {
                           id={`edu-location-${index}`}
                           value={edu.location}
                           onChange={(e) => handleInputChange("education", "location", e.target.value, index)}
-                          placeholder="City, Country"
+                          placeholder="Zurich, Switzerland"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -678,6 +975,38 @@ const ResumeEditor = () => {
           </div>
         </div>
       </div>
+      
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share your resume</DialogTitle>
+            <DialogDescription>
+              Share your resume with others via social media or email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <Button variant="outline" onClick={() => shareResume('facebook')} className="flex items-center justify-center">
+              <Facebook className="mr-2 h-4 w-4" />
+              Facebook
+            </Button>
+            <Button variant="outline" onClick={() => shareResume('twitter')} className="flex items-center justify-center">
+              <Twitter className="mr-2 h-4 w-4" />
+              Twitter
+            </Button>
+            <Button variant="outline" onClick={() => shareResume('email')} className="flex items-center justify-center">
+              <Mail className="mr-2 h-4 w-4" />
+              Email
+            </Button>
+            <Button variant="outline" onClick={() => shareResume('whatsapp')} className="flex items-center justify-center">
+              <Phone className="mr-2 h-4 w-4" />
+              WhatsApp
+            </Button>
+            <Button variant="secondary" onClick={() => shareResume('copy')} className="col-span-2">
+              Copy Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
